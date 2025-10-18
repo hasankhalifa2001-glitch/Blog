@@ -10,33 +10,31 @@ interface ArticleId {
     params: { articleId: string }
 }
 
-export const dynamic = 'force-dynamic';
-
 const ArticleIdPage = async ({ params }: ArticleId) => {
 
-
     const token = cookies().get('jwtToken')?.value || ''
+
     const payload = verifyTokenForPage(token)
 
-    const id = Number(params.articleId)
-    if (isNaN(id)) {
-        return <div>Invalid article ID</div>
-    }
-
+    // const article: SingleArticle = await getSingleArticle(params.articleId)
     const article = await prisma.article.findUnique({
-        where: { id },
+        where: { id: parseInt(params.articleId) },
         include: {
             comment: {
                 include: {
-                    User: { select: { username: true } }
+                    User: {
+                        select: { username: true }
+                    }
                 },
-                orderBy: { createdAt: 'desc' }
+                orderBy: {
+                    createdAt: 'desc'
+                }
             }
         },
     }) as SingleArticle
 
     if (!article) {
-        return <div className="text-center py-10 text-red-500">Article not found.</div>
+        throw new Error("Error fetching article")
     }
 
     return (
