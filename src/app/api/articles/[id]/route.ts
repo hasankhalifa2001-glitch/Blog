@@ -1,9 +1,6 @@
 import prisma from "@/utils/db";
 import { verifyToken } from "@/utils/verifyToken";
-import { Article } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import { title } from "process";
-import { date } from "zod";
 
 interface Props {
     params: { id: string }

@@ -1,43 +1,42 @@
-import { getSingleArticle } from '@/apiCalle/ArticleApiCall'
 import AddCommentForm from '@/components/comments/AddCommentForm'
 import CommentItem from '@/components/comments/CommentItem'
 import prisma from '@/utils/db'
 import { SingleArticle } from '@/utils/type'
 import { verifyTokenForPage } from '@/utils/verifyToken'
-import { Article } from '@prisma/client'
 import { cookies } from 'next/headers'
-// import { Article } from '@/utils/type'
 import React from 'react'
 
 interface ArticleId {
     params: { articleId: string }
 }
 
+export const dynamic = 'force-dynamic';
+
 const ArticleIdPage = async ({ params }: ArticleId) => {
 
-    const token = cookies().get('jwtToken')?.value || ''
 
+    const token = cookies().get('jwtToken')?.value || ''
     const payload = verifyTokenForPage(token)
 
-    // const article: SingleArticle = await getSingleArticle(params.articleId)
+    const id = Number(params.articleId)
+    if (isNaN(id)) {
+        return <div>Invalid article ID</div>
+    }
+
     const article = await prisma.article.findUnique({
-        where: { id: parseInt(params.articleId) },
+        where: { id },
         include: {
             comment: {
                 include: {
-                    User: {
-                        select: { username: true }
-                    }
+                    User: { select: { username: true } }
                 },
-                orderBy: {
-                    createdAt: 'desc'
-                }
+                orderBy: { createdAt: 'desc' }
             }
         },
     }) as SingleArticle
 
     if (!article) {
-        throw new Error("Error fetching article")
+        return <div className="text-center py-10 text-red-500">Article not found.</div>
     }
 
     return (
